@@ -1,24 +1,54 @@
 {
   "name": "neo-ts",
   "version": "1.0.0",
-  "type": "commonjs",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "nodemon -e ts --exec \"npm run build && npm start\""
+    "dev": "nodemon -e ts --exec \"npm run build && npm start\"",
+    "lint": "eslint . --ext .ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "Pistak",
   "license": "ISC",
   "dependencies": {
     "@discordjs/voice": "^0.16.1",
-    "discord.js": "^14.14.1"
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "play-dl": "^1.9.7",
+    "tmi.js": "^1.8.5"
   },
   "devDependencies": {
-    "dotenv": "^16.3.1",
+    "@typescript-eslint/eslint-plugin": "^6.18.1",
+    "@typescript-eslint/parser": "^6.18.1",
+    "eslint": "^8.56.0",
     "nodemon": "^3.0.2",
+    "standard": "^17.1.0",
     "typescript": "^5.3.3"
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "extends": [
+      "standard",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "root": true,
+    "ignorePatterns": [
+      "dist"
+    ],
+    "rules": {
+      "semi": [
+        "error",
+        "always"
+      ],
+      "indent": [
+        "error",
+        4
+      ]
+    }
   }
 }
