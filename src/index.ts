@@ -1,54 +1,36 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import 'dotenv/config';
-import { Client, GatewayIntentBits, REST, Routes } from 'discord.js';
-import fs from 'fs';
-import { CommandProps } from './commands/pone';
+import { Client, RoleResolvable } from 'discord.js';
+import { loadCommands } from './helpers/utils.js';
+import { intents } from './config/intents.js';
+import { partials } from './config/partials.js';
 
-const { TOKEN, CLIENT_ID } = process.env;
+const { TOKEN } = process.env;
 
-const rest = new REST().setToken(TOKEN!);
+loadCommands().then(commands => {
+    const client = new Client({
+        intents,
+        partials
+    });
 
-const commands: CommandProps[] = [];
+    client.on('interactionCreate', i => {
+        if (!i.isChatInputCommand()) return;
 
-for (const command of fs.readdirSync('./dist/commands')) {
-    const commandNode = require(`./commands/${command}`);
-    if ('data' in commandNode && 'execute' in commandNode) {
-        commands.push({ data: commandNode.data.toJSON(), execute: commandNode.execute });
-    } else {
-        console.error(`[WARNING] The command at ${command} is missing a required "data" or "execute" property.`);
-    }
-}
+        commands.find(({ data: { name } }) => i.commandName === name)?.execute(i);
+    });
 
-(async () => {
-    try {
-        console.log(`Started refreshing ${commands.length} application (/) commands.`);
+    client.on('ready', ({ user: { tag } }) => {
+        console.log(`CLIENT LOGGED AS -> ${tag}`);
+    });
 
-        rest.put(
-            Routes.applicationCommands(CLIENT_ID!),
-            { body: commands.map(({ data }) => data) }
-        );
+    client.on('messageReactionAdd', async ({ message: { id: msgID, guild }, emoji: { id: emojiID } }, { id }) => {
+        const vicio = await guild!.roles.fetch('727983980426690580') as RoleResolvable;
 
-        console.log(`Successfully reloaded ${commands.length} application (/) commands.`);
-    } catch (error) {
-        console.error(error);
-    }
-})();
+        if (msgID === '1184336326343012453' && emojiID === '839225020257009694') {
+            const { roles } = await guild!.members.fetch(id);
 
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildVoiceStates,
-        GatewayIntentBits.DirectMessages
-    ]
+            roles.add(vicio);
+        }
+    });
+
+    client.login(TOKEN!);
 });
-
-client.on('interactionCreate', i => {
-    if (!i.isChatInputCommand()) return;
-
-    commands.find(({ data: { name } }) => i.commandName === name)?.execute(i);
-});
-
-client.login(TOKEN!);
